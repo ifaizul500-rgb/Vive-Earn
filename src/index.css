@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-marquee: marquee 20s linear infinite;
+  --animate-border-color: border-color-change 4s linear infinite;
+
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  @keyframes border-color-change {
+    0% { border-color: #ff3d71; }
+    33% { border-color: #d633ff; }
+    66% { border-color: #3366ff; }
+    100% { border-color: #ff3d71; }
+  }
+}
+
+@layer utilities {
+  .animate-marquee {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+  }
+  .animate-border-color {
+    animation: border-color-change 4s linear infinite;
+  }
+}

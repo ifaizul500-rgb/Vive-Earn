@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user account information and balance.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "userName": { "type": "string", "description": "Display name" },
+        "balance": { "type": "number", "description": "Current account balance" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "userName", "balance", "role"]
+    },
+    "Deposit": {
+      "title": "Deposit Request",
+      "description": "Stores deposit requests from users.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "User who made the deposit" },
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["bKash", "Nagad"] },
+        "trxId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "amount", "method", "trxId", "status", "createdAt"]
+    },
+    "Withdrawal": {
+      "title": "Withdrawal Request",
+      "description": "Stores withdrawal requests from users.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "amount": { "type": "number" },
+        "method": { "type": "string", "enum": ["bKash", "Nagad"] },
+        "accountNumber": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "amount", "method", "accountNumber", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile documents"
+    },
+    "/deposits/{depositId}": {
+      "schema": "Deposit",
+      "description": "Deposit requests"
+    },
+    "/withdrawals/{withdrawalId}": {
+      "schema": "Withdrawal",
+      "description": "Withdrawal requests"
+    }
+  }
+}
