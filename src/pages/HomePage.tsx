@@ -4,7 +4,7 @@ import { Page } from '../types';
 
 export const HomePage = ({ setPage, userName }: { setPage: (p: Page) => void, userName: string }) => {
   return (
-    <div className="flex flex-col gap-3 pb-24">
+    <div className="flex flex-col gap-3 pb-24 transition-colors duration-300">
       {/* Welcome Banner */}
       <div className="mx-4 p-3.5 rounded-[1.5rem] bg-gradient-to-br from-[#059669] to-[#064e3b] text-white relative overflow-hidden shadow-lg shadow-[#059669]/20">
         <div className="relative z-10">
@@ -50,7 +50,7 @@ export const HomePage = ({ setPage, userName }: { setPage: (p: Page) => void, us
             { deposit: '২০০০ টাকা', bonus: '৳১০০০ ফ্রি', gradient: 'from-[#9d00ff] to-[#cc66ff]' },
             { deposit: '৫০০০ টাকা', bonus: '৳৩০০০ ফ্রি', gradient: 'from-[#3366ff] to-[#6699ff]' },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-[1.2rem] bg-white shadow-sm border border-gray-50 hover:shadow-md transition-shadow">
+            <div key={i} className="flex items-center gap-3 p-3 rounded-[1.2rem] bg-white shadow-sm border border-gray-50 hover:shadow-md transition-all">
               <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center text-white shrink-0 shadow-lg shadow-black/5`}>
                 <CheckCircle2 size={16} />
               </div>
@@ -80,7 +80,7 @@ export const HomePage = ({ setPage, userName }: { setPage: (p: Page) => void, us
         {[
           { title: 'পরিবেশ রক্ষার জন্য', desc: 'সবুজ পৃথিবী গড়তে আমাদের বিশেষ উদ্যোগ।', icon: Leaf, color: 'text-[#059669]', bgColor: 'bg-[#059669]/10' },
           { title: 'নিরাপদ পেমেন্ট', desc: 'বিকাশ এবং নগদের মাধ্যমে দ্রুত পেমেন্ট।', icon: Shield, color: 'text-[#059669]', bgColor: 'bg-[#059669]/10' },
-          { title: 'সহজ কাজ', desc: 'প্রতিদিন মাত্র কয়েক মিনিট সময় দিন।', icon: Zap, color: 'text-[#6c5ce7]', bgColor: 'bg-[#f0eeff]' },
+          { title: 'সহ সহজ কাজ', desc: 'প্রতিদিন মাত্র কয়েক মিনিট সময় দিন।', icon: Zap, color: 'text-[#6c5ce7]', bgColor: 'bg-[#f0eeff]' },
           { title: 'দৈনিক বোনাস', desc: 'প্রতিদিন লগইন করে জিতে নিন আকর্ষণীয় পুরস্কার।', icon: Award, color: 'text-[#f1c40f]', bgColor: 'bg-[#fef9e7]' },
           { title: 'দ্রুত উইথড্র', desc: '১-১২ ঘণ্টার মধ্যে পেমেন্ট নিশ্চিত।', icon: Clock, color: 'text-[#0984e3]', bgColor: 'bg-[#e1f5fe]' },
           { title: '২৪/৭ কাস্টমার সাপোর্ট', desc: 'যেকোনো সমস্যায় আমরা আছি আপনার পাশে।', icon: Headphones, color: 'text-[#e84393]', bgColor: 'bg-[#fff0f6]' },
@@ -89,7 +89,7 @@ export const HomePage = ({ setPage, userName }: { setPage: (p: Page) => void, us
           { title: 'রেফারেল কমিশন', desc: 'বন্ধুদের আমন্ত্রণ জানিয়ে আজীবন কমিশন পান।', icon: Gift, color: 'text-[#2d3436]', bgColor: 'bg-[#fff9db]' },
           { title: 'উন্নত নিরাপত্তা', desc: 'আপনার তথ্য এবং ব্যালেন্স সম্পূর্ণ নিরাপদ।', icon: Lock, color: 'text-[#2d3436]', bgColor: 'bg-[#f1f2f6]' },
         ].map((f, i) => (
-          <div key={i} className="flex items-center gap-4 p-3.5 rounded-[1.5rem] bg-white border-2 border-[#059669]/25 shadow-sm hover:shadow-md transition-shadow">
+          <div key={i} className="flex items-center gap-4 p-3.5 rounded-[1.5rem] bg-white border-2 border-[#059669]/25 shadow-sm hover:shadow-md transition-all">
             <div className={`w-12 h-12 rounded-2xl ${f.bgColor} flex items-center justify-center ${f.color} shrink-0 border border-white/50`}>
               <f.icon size={24} />
             </div>

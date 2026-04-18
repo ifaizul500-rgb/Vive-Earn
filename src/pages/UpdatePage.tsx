@@ -3,16 +3,16 @@ import { Users } from 'lucide-react';
 
 export const UpdatePage = () => {
   return (
-    <div className="flex flex-col gap-4 pb-24 px-4 bg-[#f8f9fa] min-h-screen">
+    <div className="flex flex-col gap-4 pb-24 px-4 bg-white min-h-screen transition-colors duration-300">
       <div className="text-center py-4">
         <h2 className="text-xl font-bold text-gray-800">Latest Updates</h2>
         <p className="text-gray-400 text-xs">অ্যাপের নতুন খবরগুলো জানুন</p>
       </div>
 
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden transition-colors">
         <div className="absolute top-0 right-0 bg-[#059669] text-white text-[8px] font-bold px-3 py-1 rounded-bl-xl">NEW</div>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-[#059669]/10 flex items-center justify-center text-[#059669]">
+          <div className="w-10 h-10 rounded-xl bg-[#059669]/10 text-[#059669] flex items-center justify-center">
             <Users size={20} />
           </div>
           <div>

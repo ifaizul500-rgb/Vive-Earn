@@ -14,7 +14,7 @@ export const FAQPage = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-4 pb-24 px-4 bg-[#f8f9fa] min-h-screen">
+    <div className="flex flex-col gap-4 pb-24 px-4 bg-white min-h-screen transition-colors duration-300">
       <div className="text-center py-4">
         <h2 className="text-xl font-bold text-gray-800">FAQ (সাধারণ জিজ্ঞাসা)</h2>
         <p className="text-gray-400 text-xs">আপনার প্রশ্নের উত্তর এখানে খুঁজুন</p>
@@ -22,7 +22,7 @@ export const FAQPage = () => {
 
       <div className="space-y-3">
         {faqs.map((faq) => (
-          <div key={faq.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div key={faq.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-colors">
             <button 
               onClick={() => setOpenId(openId === faq.id ? null : faq.id)}
               className="w-full p-4 flex items-center justify-between text-left"

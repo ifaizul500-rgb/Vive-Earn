@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Wallet, CheckCircle2, Copy } from 'lucide-react';
+import { Wallet, CheckCircle2, Copy, Loader2, Gift } from 'lucide-react';
 import { Page } from '../types';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 
 export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
   const [selectedMethod, setSelectedMethod] = useState<'bKash' | 'Nagad' | null>(null);
   const [copied, setCopied] = useState(false);
   const [amount, setAmount] = useState("");
   const [transactionId, setTransactionId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   
   const numbers = {
     bKash: "01700000000",
@@ -20,8 +24,46 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDeposit = async () => {
+    if (!amount || !transactionId || !selectedMethod) return;
+    if (Number(amount) < 500) return alert('সর্বনিম্ন ডিপোজিট ৫০০ টাকা');
+
+    setLoading(true);
+    try {
+      await addDoc(collection(db, 'transactions'), {
+        uid: auth.currentUser?.uid,
+        userName: auth.currentUser?.email?.split('@')[0],
+        type: 'deposit',
+        amount: Number(amount),
+        method: selectedMethod,
+        trxId: transactionId,
+        status: 'pending',
+        createdAt: serverTimestamp()
+      });
+      setSuccess(true);
+      setTimeout(() => setPage('transaction'), 2000);
+    } catch (error) {
+      console.error(error);
+      alert('ত্রুটি হয়েছে, আবার চেষ্টা করুন');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+          <CheckCircle2 size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-gray-800">অনুরোধ সফল হয়েছে!</h2>
+        <p className="text-gray-500 text-xs mt-2">আপনার ডিপোজিট অনুরোধটি পেন্ডিং অবস্থায় আছে। যাচাই করার পর ব্যালেন্স যোগ করা হবে।</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-3 pb-24 px-4 bg-[#f8f9fa] min-h-screen">
+    <div className="flex flex-col gap-3 pb-24 px-4 bg-white min-h-screen transition-colors duration-300">
       <div className="flex items-center gap-2.5 py-2.5">
         <div className="w-10 h-10 rounded-xl bg-[#059669] flex items-center justify-center text-white shadow-lg shadow-[#059669]/20">
           <Wallet size={20} />
@@ -30,7 +72,7 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
       </div>
 
       {/* Method Selection at Top */}
-      <div className="grid grid-cols-2 gap-4 mb-4 max-w-[340px] mx-auto">
+      <div className="grid grid-cols-2 gap-3 mb-4 max-w-[300px] mx-auto">
         {[
           { 
             id: 'bKash', 
@@ -50,11 +92,11 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
           <button 
             key={method.id} 
             onClick={() => setSelectedMethod(method.id as any)}
-            className={`p-4 rounded-2xl bg-white border-2 transition-all flex flex-col items-center gap-2 shadow-sm ${
-              selectedMethod === method.id ? `${method.color} scale-[1.05] shadow-md` : 'border-transparent'
+            className={`p-2.5 rounded-xl bg-white border-2 transition-all flex flex-col items-center gap-1.5 shadow-sm ${
+              selectedMethod === method.id ? `${method.color} scale-[1.02] shadow-md` : 'border-transparent'
             }`}
           >
-            <div className={`w-24 h-16 rounded-xl ${method.bg} flex items-center justify-center p-2 overflow-hidden`}>
+            <div className={`w-20 h-14 rounded-lg ${method.bg} flex items-center justify-center p-1.5 overflow-hidden`}>
               <img 
                 src={method.img} 
                 alt={method.name} 
@@ -62,15 +104,38 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-black ${method.id === 'bKash' ? 'text-[#e2136e]' : 'text-[#f7941d]'}">${method.name}</span>`;
+                  e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-black ${method.id === 'bKash' ? 'text-[#e2136e]' : 'text-[#f7941d]'}">${method.name}</span>`;
                 }}
               />
             </div>
-            <span className={`text-[11px] font-bold ${selectedMethod === method.id ? 'text-gray-900' : 'text-gray-500'}`}>
+            <span className={`text-[10px] font-bold ${selectedMethod === method.id ? 'text-gray-900' : 'text-gray-500'}`}>
               {method.name}
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Bonus Information Card */}
+      <div className="mx-auto w-full max-w-[340px] mb-4 overflow-hidden rounded-2xl border border-emerald-100 bg-emerald-50/30 p-4 shadow-sm">
+        <div className="flex items-center gap-2 text-emerald-700 mb-3">
+          <Gift size={18} className="animate-bounce" />
+          <h3 className="text-sm font-black uppercase tracking-wide">প্রথম ডিপোজিট বোনাস :</h3>
+        </div>
+        <div className="space-y-2">
+          {[
+            { deposit: "১০০০", bonus: "৫০০" },
+            { deposit: "২০০০", bonus: "১০০০" },
+            { deposit: "৫০০০", bonus: "২০০০" },
+          ].map((item, idx) => (
+            <div key={idx} className="flex items-center justify-between text-[11px] font-bold text-gray-700 bg-white/60 p-2 rounded-lg border border-emerald-100/50">
+              <span className="flex items-center gap-1.5">
+                <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                {item.deposit} টাকা ডিপোজিটে
+              </span>
+              <span className="text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-full">{item.bonus} টাকা বোনাস</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {selectedMethod ? (
@@ -91,7 +156,7 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
           </div>
 
           <div className="space-y-2">
-            <p className="text-pink-600 font-bold text-center text-[10px] leading-relaxed">
+            <p className={`font-bold text-center text-[10px] leading-relaxed ${selectedMethod === 'bKash' ? 'text-[#e2136e]' : 'text-[#f7941d]'}`}>
               {selectedMethod} থেকে উক্ত নাম্বারে সেন্ড মানি করতে হবে। ক্যাশ আউট গ্রহণযোগ্য নয়।
             </p>
             <p className="text-gray-400 text-[9px] text-center leading-relaxed">
@@ -123,17 +188,22 @@ export const DepositPage = ({ setPage }: { setPage: (p: Page) => void }) => {
             </div>
           </div>
 
-          <button className="w-full bg-[#059669] text-white py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-[#059669]/20 mt-1 active:scale-[0.98] transition-all">
-            ডিপোজিট নিশ্চিত করুন
+          <button 
+            onClick={handleDeposit}
+            disabled={loading}
+            className="w-full bg-[#059669] text-white py-3.5 rounded-xl font-bold text-sm shadow-xl shadow-[#059669]/20 mt-1 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'প্রসেসিং হচ্ছে...' : 'ডিপোজিট নিশ্চিত করুন'}
           </button>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-12 px-6 bg-white rounded-[2rem] border border-dashed border-gray-200">
-          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mb-4">
-            <Wallet size={32} />
+        <div className="flex flex-col items-center justify-center py-6 px-4 bg-white rounded-2xl border-[1.5px] border-black/10 shadow-sm mx-auto w-full max-w-[300px] transition-colors">
+          <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 mb-3">
+            <Wallet size={24} />
           </div>
-          <h3 className="text-gray-800 font-bold mb-1">পেমেন্ট মেথড সিলেক্ট করুন</h3>
-          <p className="text-gray-400 text-[10px] text-center">টাকা জমা দিতে উপরে বিকাশ অথবা নগদ সিলেক্ট করুন</p>
+          <h3 className="text-gray-900 font-black text-sm mb-1 uppercase tracking-tight">পেমেন্ট মেথড সিলেক্ট করুন</h3>
+          <p className="text-gray-400 text-[9px] text-center">টাকা জমা দিতে উপরে বিকাশ অথবা নগদ সিলেক্ট করুন</p>
         </div>
       )}
     </div>

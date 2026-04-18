@@ -1,59 +1,79 @@
 {
   "entities": {
-    "UserProfile": {
-      "title": "User Profile",
-      "description": "Stores user account information and balance.",
-      "type": "object",
-      "properties": {
-        "uid": { "type": "string", "description": "Firebase Auth UID" },
-        "userName": { "type": "string", "description": "Display name" },
-        "balance": { "type": "number", "description": "Current account balance" },
-        "role": { "type": "string", "enum": ["user", "admin"], "description": "User role" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["uid", "userName", "balance", "role"]
-    },
-    "Deposit": {
-      "title": "Deposit Request",
-      "description": "Stores deposit requests from users.",
-      "type": "object",
-      "properties": {
-        "uid": { "type": "string", "description": "User who made the deposit" },
-        "amount": { "type": "number" },
-        "method": { "type": "string", "enum": ["bKash", "Nagad"] },
-        "trxId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["uid", "amount", "method", "trxId", "status", "createdAt"]
-    },
-    "Withdrawal": {
-      "title": "Withdrawal Request",
-      "description": "Stores withdrawal requests from users.",
+    "User": {
+      "title": "User",
+      "description": "App user data",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
-        "amount": { "type": "number" },
-        "method": { "type": "string", "enum": ["bKash", "Nagad"] },
-        "accountNumber": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "balance": { "type": "number", "description": "Current balance in Tk" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "myReferralCode": { "type": "string", "description": "Personal referral code for sharing" },
+        "referralCount": { "type": "number", "description": "Number of users referred" },
+        "referralIncome": { "type": "number", "description": "Total money earned from referrals" },
+        "referredBy": { "type": "string", "description": "UID of the user who referred this user" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["uid", "amount", "method", "accountNumber", "status", "createdAt"]
+      "required": ["uid", "name", "phone", "balance"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Deposit and withdrawal requests",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "userName": { "type": "string" },
+        "type": { "type": "string", "enum": ["deposit", "withdraw"] },
+        "amount": { "type": "number" },
+        "method": { "type": "string" },
+        "trxId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "successful", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "type", "amount", "status"]
+    },
+    "PurchasedPlan": {
+      "title": "PurchasedPlan",
+      "description": "Plans bought by users",
+      "type": "object",
+      "properties": {
+        "planId": { "type": "string" },
+        "planName": { "type": "string" },
+        "dailyIncome": { "type": "number" },
+        "purchaseDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["planId", "planName", "dailyIncome"]
+    },
+    "UserTask": {
+      "title": "UserTask",
+      "description": "Daily earnings tracking",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "description": "YYYY-MM-DD" },
+        "clickCount": { "type": "number" }
+      },
+      "required": ["userId", "date", "clickCount"]
     }
   },
   "firestore": {
     "/users/{userId}": {
-      "schema": "UserProfile",
-      "description": "User profile documents"
+      "schema": "User",
+      "description": "User profile data"
     },
-    "/deposits/{depositId}": {
-      "schema": "Deposit",
-      "description": "Deposit requests"
+    "/users/{userId}/purchasedPlans/{planId}": {
+      "schema": "PurchasedPlan",
+      "description": "Plans owned by the user"
     },
-    "/withdrawals/{withdrawalId}": {
-      "schema": "Withdrawal",
-      "description": "Withdrawal requests"
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Global transactions list"
+    },
+    "/userTasks/{taskId}": {
+      "schema": "UserTask",
+      "description": "Tracking daily clicks for users"
     }
   }
 }

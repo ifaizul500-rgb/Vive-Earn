@@ -1,21 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCPmj56qIgsOXQOekPoKaBvYo-FeAIcoCo",
-  authDomain: "vive-earn-37dee.firebaseapp.com",
-  projectId: "vive-earn-37dee",
-  storageBucket: "vive-earn-37dee.firebasestorage.app",
-  messagingSenderId: "772657961986",
-  appId: "1:772657961986:web:5ebb32db4af106bbf7db1b"
-};
+import { initializeFirestore } from 'firebase/firestore';
+import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Services
+// Initialize Services with enhanced connectivity settings
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+}, firebaseConfig.firestoreDatabaseId);
 
 export default app;

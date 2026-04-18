@@ -10,7 +10,7 @@ export const SupportPage = ({ setPage }: { setPage: (p: Page) => void }) => {
   ];
 
   return (
-    <div className="flex flex-col gap-4 pb-24 px-4 bg-[#f8f9fa] min-h-screen">
+    <div className="flex flex-col gap-4 pb-24 px-4 bg-white min-h-screen transition-colors duration-300">
       <div className="text-center py-4">
         <h2 className="text-xl font-bold text-gray-800">Support Center</h2>
         <p className="text-gray-400 text-xs">আমাদের সাথে যোগাযোগ করুন</p>
@@ -18,7 +18,7 @@ export const SupportPage = ({ setPage }: { setPage: (p: Page) => void }) => {
 
       <div className="space-y-3">
         {supportOptions.map((opt) => (
-          <div key={opt.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between opacity-70">
+          <div key={opt.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between opacity-70 transition-colors">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl ${opt.color} flex items-center justify-center text-white`}>
                 <opt.icon size={20} />

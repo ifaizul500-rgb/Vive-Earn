@@ -1,24 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
     // ===============================================================
     // Assumed Data Model
     // ===============================================================
     //
     // Collection: users
-    // Fields: uid, userName, balance, role, createdAt
+    // Document ID: {userId}
+    // Fields: uid, name, phone, balance, role, myReferralCode, referralCount, referralIncome, referredBy, createdAt
     //
-    // Collection: deposits
-    // Fields: uid, amount, method, trxId, status, createdAt
+    // Collection: transactions
+    // Document ID: {transactionId}
+    // Fields: uid, userName, type, amount, method, trxId, status, createdAt
     //
-    // Collection: withdrawals
-    // Fields: uid, amount, method, accountNumber, status, createdAt
+    // Collection: userTasks
+    // Document ID: {taskId}
+    // Fields: userId, date, clickCount
     //
     // ===============================================================
 
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
+    // --- Helper Functions ---
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -28,57 +30,76 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         request.auth.token.email == "ifaizul500@gmail.com"); // Default admin from context
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
+         request.auth.token.email == "ifaizul500@gmail.com"); 
     }
 
     function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'userName', 'balance', 'role']) &&
-             data.uid is string &&
-             data.userName is string && data.userName.size() < 50 &&
-             data.balance is number &&
-             data.role in ['user', 'admin'];
+      return data.keys().hasAll(['uid', 'name', 'phone', 'balance']) &&
+             data.uid is string && data.uid.size() < 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() < 20 &&
+             data.balance is number && data.balance >= 0 &&
+             (!('password' in data) || (data.password is string && data.password.size() < 128)) &&
+             (!('myReferralCode' in data) || (data.myReferralCode is string && data.myReferralCode.size() < 20)) &&
+             (!('referralCount' in data) || data.referralCount is number) &&
+             (!('referralIncome' in data) || data.referralIncome is number) &&
+             (!('referredBy' in data) || (data.referredBy is string && data.referredBy.size() < 128));
     }
 
-    function isValidDeposit(data) {
-      return data.keys().hasAll(['uid', 'amount', 'method', 'trxId', 'status', 'createdAt']) &&
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['uid', 'userName', 'type', 'amount', 'status']) &&
              data.uid == request.auth.uid &&
+             data.type in ['deposit', 'withdraw'] &&
              data.amount is number && data.amount > 0 &&
-             data.method in ['bKash', 'Nagad'] &&
-             data.trxId is string && data.trxId.size() < 100 &&
              data.status == 'pending';
     }
 
-    function isValidWithdrawal(data) {
-      return data.keys().hasAll(['uid', 'amount', 'method', 'accountNumber', 'status', 'createdAt']) &&
-             data.uid == request.auth.uid &&
-             data.amount is number && data.amount >= 500 &&
-             data.method in ['bKash', 'Nagad'] &&
-             data.accountNumber is string && data.accountNumber.size() < 20 &&
-             data.status == 'pending';
+    function isValidTask(data) {
+      return data.keys().hasAll(['userId', 'date', 'clickCount']) &&
+             data.userId == request.auth.uid &&
+             data.date is string &&
+             data.clickCount is number &&
+             (!('lastEarned' in data) || data.lastEarned is number) &&
+             (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
-    // ===============================================================
-    // Rules
-    // ===============================================================
+    // --- Rules ---
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
-      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role && request.resource.data.balance == resource.data.balance);
+      // Allow reading profile for referral matching. 
+      // NOTE: Ideally PII should be split into a private collection.
+      allow read: if isAuthenticated(); 
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.balance == 0;
+      
+      // Allow user to update their own name/password or allow anyone to update referral stats (for registration)
+      allow update: if isAdmin() || 
+                    (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'password'])) ||
+                    (isAuthenticated() && 
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(['referralCount', 'referralIncome', 'balance']) &&
+                     request.resource.data.balance == resource.data.balance + 5 &&
+                     request.resource.data.referralCount == resource.data.referralCount + 1 &&
+                     request.resource.data.referralIncome == resource.data.referralIncome + 5);
+      
+      match /purchasedPlans/{planId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+      }
     }
 
-    match /deposits/{depositId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
-      allow create: if isAuthenticated() && isValidDeposit(request.resource.data);
-      allow update, delete: if isAdmin();
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if isAuthenticated() && (isAdmin() || (request.query.limit <= 100 && request.query.filters.uid == request.auth.uid));
+      allow create: if isAuthenticated() && isValidTransaction(request.resource.data);
+      allow update: if isAdmin(); 
     }
 
-    match /withdrawals/{withdrawalId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.uid || isAdmin());
-      allow create: if isAuthenticated() && isValidWithdrawal(request.resource.data);
-      allow update, delete: if isAdmin();
+    match /userTasks/{taskId} {
+      // Use matches for more reliable prefix checking
+      allow read: if isAuthenticated() && (taskId.matches("^" + request.auth.uid + "_.*") || isAdmin());
+      allow create, update: if isAuthenticated() && (taskId.matches("^" + request.auth.uid + "_.*") || isAdmin()) && isValidTask(request.resource.data);
     }
   }
 }
